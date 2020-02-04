@@ -17,7 +17,7 @@ class Employee(db.Model):
 
 class Report(db.Model):
     __tablename__='report'
-    start_date=db.Column(db.Date(), primay_key=True)
+    start_date=db.Column(db.Date(), primary_key=True)
     employee_id=db.Column(db.String(100), primary_key=True)
     schedule=db.Column(db.String(5000))
 
