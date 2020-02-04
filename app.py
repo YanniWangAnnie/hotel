@@ -31,11 +31,11 @@ def employee():
     return render_template('employee.html', employees=employees)
 
 @app.route('/add_employee')
-def add_item():
+def add_employee():
     return render_template("add_employee.html")
 
 @app.route('/post_employee',methods=['POST'])
-def post_item():
+def post_employee():
     try:
         employee = Employee()
         employee.employee_id = request.form['alias']
