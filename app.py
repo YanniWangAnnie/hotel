@@ -4,12 +4,12 @@ from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.exceptions import BadRequest
 from sqlalchemy import exc
-import datetime
 import json
 import os
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI']=os.environ['DATABASE_URL']
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+app.debug = True
 db = SQLAlchemy(app)
 
 
@@ -37,11 +37,11 @@ def process():
     start_date_str = request.form['start_date']
     start_date = date_elem = datetime.strptime(start_date_str, '%Y/%m/%d')
     f = request.files['file']
-    content = f.read()
+    content = f.read().decode('utf8')
     calculator = Calculator(start_date)
     reports = calculator.calc(content)
-    for alias, report in reports:
-        existing_record = Report.query.get(start_date=start_date, employee_id=alias)
+    for alias, report in reports.items():
+        existing_record = Report.query.get((start_date, alias))
         if existing_record:
             existing_record.schedule = json.dumps(report.__dict__)
         else:
@@ -51,9 +51,8 @@ def process():
             report_record.schedule = json.dumps(report.__dict__)
             db.session.add(report_record)
     db.session.commit()
-
-    # TODO: return the date page
-    return "processed"
+    reports = Report.query.filter(Report.start_date == start_date)
+    return render_template('report_list.html', reports=reports)
 
 
 @app.route('/employee')

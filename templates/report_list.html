@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+</head>
+
+<body>
+    <table>
+        <tbody>
+            {% for report in reports %}
+            <tr>
+                <td>{{ report.employee_id }}</td>
+                <td>{{ report.start_date }}</td>
+                <td>{{ report.schedule }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table> 
+</body>
+
+</html>
