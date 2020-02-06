@@ -37,7 +37,7 @@ class Calculator:
             return True
         return False
 
-    def calc(self, content, start_date):
+    def calc(self, content):
         # a dictionary, key is employee alia, value is ReportData
         result = {}
 

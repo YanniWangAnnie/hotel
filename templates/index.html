@@ -6,19 +6,17 @@
 </head>
 
 <body>
-    <form>
+    <form method="POST" enctype="multipart/form-data" action="{{url_for('process')}}" id="form">
         <div>
             <label>Input Week Starting Date</label>
-        </div>
-        <div>
-            <input type="text">
+            <input type="text" name="start_date">
         </div>
         <div>
             <label>Upload raw txt file</label>
-            <input type="file">
+            <input type="file" name="file">
         </div>
         <input type="submit">
-    </form>>
+    </form>
 </body>
 
 </html>
