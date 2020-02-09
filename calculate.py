@@ -49,7 +49,7 @@ class Calculator:
             if len(cells) < 7:
                 continue
 
-            alias = cells[3]
+            alias = cells[3].strip()
             date_time = cells[6].strip()
             date_time_elem = date_time.split(' ')
             date_elem = datetime.strptime(date_time_elem[0], '%Y/%m/%d')
@@ -59,20 +59,21 @@ class Calculator:
                 continue
 
             if alias not in result:
-                result[alias] = ReportData({})
-            report_data = result[alias].data
+                result[alias] = []
+                # two weeks:
+                for _ in range(14):
+                    # four entries each day
+                    result[alias].append([])
+            report_data = result[alias]
+
+            index = (date_elem - self.start_date).days
 
             # if previous day doesn't have end entry, make a night shift entry
-            previous_day = (date_elem - timedelta(1)).strftime('%Y/%m/%d')
-            if previous_day in report_data and len(report_data[previous_day]) % 2 != 0:
-                report_data[previous_day].append(
-                    (1, time_elem))  # An entry with 1 indicates NIGHT_SHIFT, time_elem shows timestamp.
-                continue
+            if index > 0:
+                if len(report_data[index - 1]) % 2 != 0:
+                    report_data[index - 1].append(time_elem)
+                    continue
 
-            date_elem_str = date_elem.strftime('%Y/%m/%d')
-            if date_elem_str not in report_data:
-                report_data[date_elem_str] = []
-            report_data[date_elem_str].append(
-                (0, time_elem))  # An entry with 0 indicates NORMAL_SHIFT, time_elem shows timestamp.
-
+            if len(report_data[index]) < 4:
+                report_data[index].append(time_elem)
         return result

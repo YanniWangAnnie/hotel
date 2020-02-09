@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+</head>
+
+<body>
+    <table>
+        <tbody>
+            <div>
+                <label>Starting Date</label>
+                <label>{{ dates[0] }}</label>
+            </div>
+            <div>
+                <label>Name</label>
+                <input type="text" name="name" value="{{ employee.employee_name }}">
+            </div>
+
+            <div>
+                <label>Alias</label>
+                <input type="text" name="alias" value="{{ employee.employee_id }}">
+            </div>
+            <div>
+                <label>Department</label>
+                <input type="text" name="org" value="{{ employee.employee_org }}">
+            </div>
+
+            <tr>
+                <td>Date</td>
+                <td>Time in</td>
+                <td>Time out</td>
+                <td>Time in</td>
+                <td>Time out</td>
+                <td>Total hours</td>
+                <td>Regular hours</td>
+                <td>Overtime</td>
+                <td>Sick days</td>
+                <td>Holidays</td>
+                <td>Vacations</td>
+            </tr>
+            {% for i in range(7) %}
+            <tr>
+                <td>{{ dates[i] }}</td>
+                {% for entry in schedule[i] %}
+                <td>{{ entry }}</td>
+                {% endfor %}
+
+                {% for entry in stats[i] %}
+                <td>{{ entry }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+            <tr>
+                <td></td><td></td><td></td><td></td><td></td><td>Total hours</td>
+                {% for t in totals[0] %}
+                <td>{{ t }}</td>
+                {% endfor %}
+            </tr>
+            {% for i in range(7, 14) %}
+            <tr>
+                <td>{{ dates[i] }}</td>
+                {% for entry in schedule[i] %}
+                <td>{{ entry }}</td>
+                {% endfor %}
+
+                {% for entry in stats[i] %}
+                <td>{{ entry }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+            <tr>
+                <td></td><td></td><td></td><td></td><td></td><td>Total hours</td>
+                {% for t in totals[1] %}
+                <td>{{ t }}</td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td></td><td></td><td></td><td></td><td></td><td>Biweekly Total hours</td>
+                {% for t in totals[2] %}
+                <td>{{ t }}</td>
+                {% endfor %}
+            </tr>
+        </tbody>
+    </table> 
+</body>
+
+</html>

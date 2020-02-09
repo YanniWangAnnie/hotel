@@ -1,5 +1,5 @@
 from calculate import Calculator
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.exceptions import BadRequest
@@ -8,10 +8,11 @@ import json
 import os
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://qexshwurjivnnh:16728b8d539884cbfa48a52f7db336d2cab13eab5f7324015d1a2d3579febe7b@ec2-34-196-180-38.compute-1.amazonaws.com:5432/dap9h4ca6l9mtr'
 app.debug = True
 db = SQLAlchemy(app)
 
+REG_HOUR = 8.00
 
 class Employee(db.Model):
     __tablename__ = 'employee'
@@ -35,7 +36,7 @@ def index():
 @app.route('/process', methods=['POST'])
 def process():
     start_date_str = request.form['start_date']
-    start_date = date_elem = datetime.strptime(start_date_str, '%Y/%m/%d')
+    start_date = datetime.strptime(start_date_str, '%Y/%m/%d')
     f = request.files['file']
     content = f.read().decode('utf8')
     calculator = Calculator(start_date)
@@ -43,17 +44,79 @@ def process():
     for alias, report in reports.items():
         existing_record = Report.query.get((start_date, alias))
         if existing_record:
-            existing_record.schedule = json.dumps(report.__dict__)
+            existing_record.schedule = json.dumps(report)
         else:
             report_record = Report()
             report_record.employee_id = alias
             report_record.start_date = start_date
-            report_record.schedule = json.dumps(report.__dict__)
+            report_record.schedule = json.dumps(report)
             db.session.add(report_record)
     db.session.commit()
     reports = Report.query.filter(Report.start_date == start_date)
     return render_template('report_list.html', reports=reports)
 
+
+@app.route('/report')
+def report():
+    start_date_str = request.args.get('start_date')
+    alias = request.args.get('alias').strip()
+    record = Report.query.get((start_date_str, alias))
+
+    if not record:
+        return "No report for " + alias + " on " + start_date_str
+
+    dates = []
+    start_date = datetime.strptime(start_date_str.split(' ')[0], '%Y-%m-%d')
+    for i in range(14):
+        dates.append(start_date + timedelta(i))
+
+    schedule = json.loads(record.schedule)
+
+    stats = []
+    for _ in range(14):
+        # columns are total, regular, overtime, sick, holiday, vacation
+        stats.append([0] * 6)
+    for i in range(len(schedule)):
+        if len(schedule[i]) < 2:
+            continue
+        total = 0
+        for j in range(1, len(schedule[i]), 2):
+            last_time = datetime.strptime(schedule[i][j - 1], '%H:%M:%S')
+            cur_time = datetime.strptime(schedule[i][j], '%H:%M:%S')
+            total += ((cur_time - last_time).seconds / 3600)
+        stats[i][0] = round(total, 2)
+        stats[i][1] = min(stats[i][0], REG_HOUR)
+        if stats[i][0] > REG_HOUR:
+            stats[i][2] = round(stats[i][0] - REG_HOUR, 2)
+    
+    totals = []
+    # totals for two weeks and a sum of both 
+    for _ in range(3):
+        # columns are regular, overtime, sick, holiday, vacation
+        totals.append([0] * 5)
+
+    for i in range(7):
+        totals[0][0] += stats[i][1]
+        totals[0][1] += stats[i][2]
+    for i in range(7, 14):
+        totals[1][0] += stats[i][1]
+        totals[1][1] += stats[i][2]
+    totals[2][0] = totals[0][0] + totals[1][0]
+    totals[2][1] = totals[0][1] + totals[1][1]
+
+    employee = Employee.query.get(alias)
+    if not employee:
+        employee = Employee()
+        employee.employee_id = alias
+        employee.employee_name = ''
+        employee.employee_org = ''
+
+    for row in schedule:
+        while len(row) < 4:
+            row.append('')
+
+    return render_template(
+        'report.html', dates=dates, schedule=schedule, stats=stats, totals=totals, employee=employee)
 
 @app.route('/employee')
 def employee():
