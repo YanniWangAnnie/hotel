@@ -8,7 +8,7 @@ import json
 import os
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://qexshwurjivnnh:16728b8d539884cbfa48a52f7db336d2cab13eab5f7324015d1a2d3579febe7b@ec2-34-196-180-38.compute-1.amazonaws.com:5432/dap9h4ca6l9mtr'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 app.debug = True
 db = SQLAlchemy(app)
 
