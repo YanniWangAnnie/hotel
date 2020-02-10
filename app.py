@@ -1,6 +1,6 @@
 from calculate import Calculator
 from datetime import datetime, timedelta
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.exceptions import BadRequest
 from sqlalchemy import exc
@@ -33,13 +33,6 @@ def round_matrix(matrix, digits_count):
         for j in range(len(matrix[0])):
             matrix[i][j] = round(matrix[i][j], digits_count)
 
-def fetch_report_list(start_date):
-    reports = Report.query.filter(Report.start_date == start_date)
-    reports_data = []
-    for report in reports:
-        reports_data.append(report)
-    reports_data.sort(key=lambda x : x.employee_id)
-    return render_template('report_list.html', reports=reports_data)
 
 @app.route('/')
 def index():
@@ -65,7 +58,7 @@ def process():
             report_record.schedule = json.dumps(report)
             db.session.add(report_record)
     db.session.commit()
-    return fetch_report_list(start_date)
+    return redirect(url_for('report_list', start_date=start_date))
 
 
 @app.route('/history')
@@ -81,7 +74,12 @@ def history():
 @app.route('/report_list')
 def report_list():
     start_date = request.args.get('start_date')
-    return fetch_report_list(start_date)
+    reports = Report.query.filter(Report.start_date == start_date)
+    reports_data = []
+    for report in reports:
+        reports_data.append(report)
+    reports_data.sort(key=lambda x : x.employee_id)
+    return render_template('report_list.html', reports=reports_data)
 
 
 @app.route('/report')
@@ -185,6 +183,41 @@ def remove_employee():
     db.session.commit()
     employees = Employee.query.order_by(Employee.employee_id.asc())
     return render_template('employee.html', employees=employees)
+
+
+@app.route('/save', methods=['POST'])
+def save():
+    alias = request.args.get('alias')
+    start_date = request.args.get('start_date')
+    record = Report.query.get((start_date, alias))
+
+    schedule = []
+    for i in range(14):
+        schedule.append([])
+        for j in range(4):
+            val = request.form['schedule_' + str(i) + '_' + str(j)]
+            if not val:
+                continue
+            try:
+                datetime.strptime(val, '%H:%M:%S')
+            except:
+                return "Time entry on row " + str(i) + " column " + str(j) + " is not in the valid format of %H:%M:%S"
+            schedule[i].append(val)
+    record.schedule = json.dumps(schedule)
+    db.session.commit()
+
+    employee = Employee.query.get(alias)
+    if employee:
+        employee.employee_name = request.form['employee_name']
+        employee.employee_org = request.form['employee_org']
+    else:
+        new_employee = Employee()
+        new_employee.employee_id = alias
+        new_employee.employee_name = request.form['employee_name']
+        new_employee.employee_org = request.form['employee_org']
+        db.session.add(new_employee)
+    db.session.commit()
+    return redirect(url_for('report', alias=alias, start_date=start_date))
 
 
 if __name__ == '__main__':

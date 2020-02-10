@@ -21,84 +21,108 @@
             </ul>
         </div>
     </nav>
+    <form method="POST" action="{{url_for('save', start_date=dates[0], alias=employee.employee_id)}}" id="form">
 
-    <table>
-        <tbody>
-            <div>
-                <label>Starting Date</label>
-                <label>{{ dates[0] }}</label>
-            </div>
-            <div>
-                <label>Name</label>
-                <input type="text" name="name" value="{{ employee.employee_name }}">
-            </div>
+        <div>
+            <label>Starting Date</label>
+            <label>{{ dates[0] }}</label>
+        </div>
+        <div>
+            <label>Name:</label>
+            <input type="text" name="employee_name" value="{{ employee.employee_name }}">
+        </div>
 
-            <div>
-                <label>Alias</label>
-                <input type="text" name="alias" value="{{ employee.employee_id }}">
-            </div>
-            <div>
-                <label>Department</label>
-                <input type="text" name="org" value="{{ employee.employee_org }}">
-            </div>
+        <div>
+            <label>Alias:</label>
+            <label>{{ employee.employee_id }}</label>
+        </div>
+        <div>
+            <label>Department:</label>
+            <input type="text" name="employee_org" value="{{ employee.employee_org }}">
+        </div>
 
-            <tr>
-                <td>Date</td>
-                <td>Time in</td>
-                <td>Time out</td>
-                <td>Time in</td>
-                <td>Time out</td>
-                <td>Total hours</td>
-                <td>Regular hours</td>
-                <td>Overtime</td>
-                <td>Sick days</td>
-                <td>Holidays</td>
-                <td>Vacations</td>
-            </tr>
-            {% for i in range(7) %}
-            <tr>
-                <td>{{ dates[i] }}</td>
-                {% for entry in schedule[i] %}
-                <td>{{ entry }}</td>
-                {% endfor %}
 
-                {% for entry in stats[i] %}
-                <td>{{ entry }}</td>
-                {% endfor %}
-            </tr>
-            {% endfor %}
-            <tr>
-                <td></td><td></td><td></td><td></td><td></td><td>Total hours</td>
-                {% for t in totals[0] %}
-                <td>{{ t }}</td>
-                {% endfor %}
-            </tr>
-            {% for i in range(7, 14) %}
-            <tr>
-                <td>{{ dates[i] }}</td>
-                {% for entry in schedule[i] %}
-                <td>{{ entry }}</td>
-                {% endfor %}
+        <div>
+            <table>
+                <tbody>
 
-                {% for entry in stats[i] %}
-                <td>{{ entry }}</td>
-                {% endfor %}
-            </tr>
-            {% endfor %}
-            <tr>
-                <td></td><td></td><td></td><td></td><td></td><td>Total hours</td>
-                {% for t in totals[1] %}
-                <td>{{ t }}</td>
-                {% endfor %}
-            </tr>
-            <tr>
-                <td></td><td></td><td></td><td></td><td></td><td>Biweekly Total hours</td>
-                {% for t in totals[2] %}
-                <td>{{ t }}</td>
-                {% endfor %}
-            </tr>
-        </tbody>
-    </table> 
+                    <tr>
+                        <td>Date</td>
+                        <td>Time in</td>
+                        <td>Time out</td>
+                        <td>Time in</td>
+                        <td>Time out</td>
+                        <td>Total hours</td>
+                        <td>Regular hours</td>
+                        <td>Overtime</td>
+                        <td>Sick days</td>
+                        <td>Holidays</td>
+                        <td>Vacations</td>
+                    </tr>
+                    {% for i in range(7) %}
+                    <tr>
+                        <td>{{ dates[i] }}</td>
+                        {% for j in range(4) %}
+                        <td><input type="text" name="{{ 'schedule_' + i|string + '_' + j|string }}"
+                                value="{{ schedule[i][j] }}"></td>
+                        {% endfor %}
+
+                        {% for entry in stats[i] %}
+                        <td>{{ entry }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>Total hours</td>
+                        {% for t in totals[0] %}
+                        <td>{{ t }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% for i in range(7, 14) %}
+                    <tr>
+                        <td>{{ dates[i] }}</td>
+                        {% for j in range(4) %}
+                        <td><input type="text" name="{{ 'schedule_' + i|string + '_' + j|string }}"
+                                value="{{ schedule[i][j] }}"></td>
+                        {% endfor %}
+
+                        {% for entry in stats[i] %}
+                        <td>{{ entry }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>Total hours</td>
+                        {% for t in totals[1] %}
+                        <td>{{ t }}</td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>Biweekly Total hours</td>
+                        {% for t in totals[2] %}
+                        <td>{{ t }}</td>
+                        {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <input type="submit" value="save change">
+    </form>
 </body>
 
 </html>
