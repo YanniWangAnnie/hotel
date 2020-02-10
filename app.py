@@ -8,7 +8,7 @@ import json
 import os
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://qexshwurjivnnh:16728b8d539884cbfa48a52f7db336d2cab13eab5f7324015d1a2d3579febe7b@ec2-34-196-180-38.compute-1.amazonaws.com:5432/dap9h4ca6l9mtr'
 app.debug = True
 db = SQLAlchemy(app)
 
@@ -27,6 +27,19 @@ class Report(db.Model):
     employee_id = db.Column(db.String(100), primary_key=True)
     schedule = db.Column(db.String(5000))
 
+
+def round_matrix(matrix, digits_count):
+    for i in range(len(matrix)):
+        for j in range(len(matrix[0])):
+            matrix[i][j] = round(matrix[i][j], digits_count)
+
+def fetch_report_list(start_date):
+    reports = Report.query.filter(Report.start_date == start_date)
+    reports_data = []
+    for report in reports:
+        reports_data.append(report)
+    reports_data.sort(key=lambda x : x.employee_id)
+    return render_template('report_list.html', reports=reports_data)
 
 @app.route('/')
 def index():
@@ -52,8 +65,23 @@ def process():
             report_record.schedule = json.dumps(report)
             db.session.add(report_record)
     db.session.commit()
-    reports = Report.query.filter(Report.start_date == start_date)
-    return render_template('report_list.html', reports=reports)
+    return fetch_report_list(start_date)
+
+
+@app.route('/history')
+def history():
+    result = db.session.query(Report.start_date).distinct()
+    dates = []
+    for item in result:
+        dates.append(item[0])
+    dates.sort(reverse=True)
+    return render_template('history.html', dates=dates)
+
+
+@app.route('/report_list')
+def report_list():
+    start_date = request.args.get('start_date')
+    return fetch_report_list(start_date)
 
 
 @app.route('/report')
@@ -84,10 +112,10 @@ def report():
             last_time = datetime.strptime(schedule[i][j - 1], '%H:%M:%S')
             cur_time = datetime.strptime(schedule[i][j], '%H:%M:%S')
             total += ((cur_time - last_time).seconds / 3600)
-        stats[i][0] = round(total, 2)
+        stats[i][0] = total
         stats[i][1] = min(stats[i][0], REG_HOUR)
         if stats[i][0] > REG_HOUR:
-            stats[i][2] = round(stats[i][0] - REG_HOUR, 2)
+            stats[i][2] = stats[i][0] - REG_HOUR
     
     totals = []
     # totals for two weeks and a sum of both 
@@ -104,6 +132,7 @@ def report():
     totals[2][0] = totals[0][0] + totals[1][0]
     totals[2][1] = totals[0][1] + totals[1][1]
 
+    # fill in employee information
     employee = Employee.query.get(alias)
     if not employee:
         employee = Employee()
@@ -111,9 +140,12 @@ def report():
         employee.employee_name = ''
         employee.employee_org = ''
 
+    # formatting
     for row in schedule:
         while len(row) < 4:
             row.append('')
+    round_matrix(stats, 2)
+    round_matrix(totals, 2)
 
     return render_template(
         'report.html', dates=dates, schedule=schedule, stats=stats, totals=totals, employee=employee)

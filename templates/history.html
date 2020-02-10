@@ -22,17 +22,19 @@
         </div>
     </nav>
 
-    <form method="POST" enctype="multipart/form-data" action="{{url_for('process')}}" id="form">
-        <div>
-            <label>Input Week Starting Date (YYYY/MM/DD)</label>
-            <input type="text" name="start_date">
-        </div>
-        <div>
-            <label>Upload raw txt file</label>
-            <input type="file" name="file">
-        </div>
-        <input type="submit">
-    </form>
+    <table>
+        <tbody>
+            {% for date in dates %}
+            <tr>
+                <td>
+                    <a href="{{url_for('report_list', start_date=date)}}">
+                        {{ date }}
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table> 
 </body>
 
 </html>

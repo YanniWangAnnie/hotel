@@ -6,6 +6,22 @@
 </head>
 
 <body>
+    <nav>
+        <div>
+            <ul>
+                <li>
+                    <a href="{{url_for('index')}}">Home</a>
+                </li>
+                <li>
+                    <a href="{{url_for('employee')}}">Employee List</a>
+                </li>
+                <li>
+                    <a href="{{url_for('history')}}">History</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
     <table>
         <tbody>
             {% for report in reports %}
